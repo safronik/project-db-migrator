@@ -1,0 +1,24 @@
+{
+    "name": "safronik/db-migrator",
+    "type": "library",
+    "description": "Check current database structure",
+    "keywords": ["database","migration","schema"],
+    "homepage": "https://github.com/Safronik/project-db-migrator",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Roman Safronov",
+            "email": "r.safronik@yandex.ru",
+            "homepage": "https://github.com/Safronik/",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Safronik\\DBMigrator\\": "src/"
+        }
+    }
+}
