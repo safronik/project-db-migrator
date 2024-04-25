@@ -13,6 +13,7 @@ interface DBMigratorGatewayInterface
     public function createTable( Table $table ): bool;
     
     // Read
+    public function getTablesNames(): array;
     public function getTableColumns( string $table ): array;
     public function getTableIndexes( string $table ): array;
     public function getTableConstraints( string $table ): array;
