@@ -45,6 +45,23 @@ class DBMigrator
         return $this;
     }
     
+    /**
+     * Get schemas for all database tables
+     *
+     * @return Schemas
+     * @throws \Exception
+     */
+    public function getCurrentSchemas(): Schemas
+    {
+        $tables_data = [];
+        
+        foreach( $this->gateway->getTablesNames() as $table_name ){
+            $tables_data[] = $this->getCurrentTableSchema( $table_name );
+        }
+        
+        return new Schemas( $tables_data );
+    }
+    
     public function compareWithCurrentStructure(): static
     {
         $this->schemas
