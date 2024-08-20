@@ -6,21 +6,20 @@ use Exception;
 use Safronik\DBMigrator\Exceptions\DBMigratorException;
 use Traversable;
 
-class Schemas implements \IteratorAggregate{
+class Schema implements \IteratorAggregate{
     
     /** @var Table[] */
     private array $schemas;
     
     /**
-     * @param Table[] $schemas
+     * @param Table[] $schema
      *
      * @throws Exception
      */
-    public function __construct( array $schemas )
+    public function __construct( array $schema = [] )
     {
-        $this->checkInputArray( $schemas, Table::class );
-        
-        foreach( $schemas as $schema ){ $this->schemas[ $schema->getTableName() ] = $schema; }
+        $this->checkInputArray( $schema, Table::class );
+        $this->setSchema( $schema );
     }
     
     /**
@@ -38,18 +37,40 @@ class Schemas implements \IteratorAggregate{
         );
     }
     
+    /**
+     * Set given schema
+     *
+     * @param $schemas
+     *
+     * @return void
+     */
+    private function setSchema( $schemas ): void
+    {
+        foreach( $schemas as $schema ){
+            $this->schemas[ $schema->getTableName() ] = $schema;
+        }
+    }
+    
+    /**
+     * @param string $table_name
+     *
+     * @return Table
+     */
     public function getTableSchema( $table_name ): Table
     {
         return $this->schemas[ $table_name ];
     }
     
+    /**
+     * @return string[]
+     */
     public function getTableNames(): array
     {
         return array_keys( $this->schemas );
     }
     
     /**
-     * @return Traversable|array
+     * @return Traversable
      */
     public function getIterator(): Traversable
     {

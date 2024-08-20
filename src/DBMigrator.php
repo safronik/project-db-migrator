@@ -9,7 +9,7 @@ use Safronik\DBMigrator\Exceptions\DBMigratorException;
 use Safronik\DBMigrator\Objects\Column;
 use Safronik\DBMigrator\Objects\Constraint;
 use Safronik\DBMigrator\Objects\Index;
-use Safronik\DBMigrator\Objects\Schemas;
+use Safronik\DBMigrator\Objects\Schema;
 use Safronik\DBMigrator\Objects\Table;
 
 /**
@@ -24,7 +24,7 @@ use Safronik\DBMigrator\Objects\Table;
 class DBMigrator
 {
 	private DBMigratorGatewayInterface $gateway;
-	private Schemas $schemas;
+	private Schema $schema;
     
     private array $not_existing_tables;
     private array $existing_tables;
@@ -37,9 +37,9 @@ class DBMigrator
         $this->gateway      = $gateway;
 	}
     
-    public function setSchemas( Schemas $schemas ): static
+    public function setSchema( Schema $schema ): static
     {
-        $this->schemas     = $schemas;
+        $this->schema      = $schema;
         $this->is_analyzed = false;
         
         return $this;
@@ -48,10 +48,10 @@ class DBMigrator
     /**
      * Get schemas for all database tables
      *
-     * @return Schemas
+     * @return Schema
      * @throws \Exception
      */
-    public function getCurrentSchemas(): Schemas
+    public function getCurrentSchemas(): Schema
     {
         $tables_data = [];
         
@@ -59,12 +59,12 @@ class DBMigrator
             $tables_data[] = $this->getCurrentTableSchema( $table_name );
         }
         
-        return new Schemas( $tables_data );
+        return new Schema( $tables_data );
     }
     
     public function compareWithCurrentStructure(): static
     {
-        $this->schemas
+        $this->schema
             || throw new DBMigratorException('No schema defined to analyze. Use self::setSchema() to define it.');
         
         if( $this->is_analyzed ){
@@ -80,17 +80,17 @@ class DBMigrator
             
             $columns_analyzer = new ColumnsAnalyzer(
                 $current_schema->getColumns(),
-                $this->schemas->getTableSchema( $existing_table )->getColumns()
+                $this->schema->getTableSchema( $existing_table )->getColumns()
             );
             
             $indexes_analyzer = new IndexAnalyzer(
                 $current_schema->getIndexes(),
-                $this->schemas->getTableSchema( $existing_table )->getIndexes()
+                $this->schema->getTableSchema( $existing_table )->getIndexes()
             );
             
             $constraints_analyzer = new ConstraintAnalyzer(
                 $current_schema->getConstraints(),
-                $this->schemas->getTableSchema( $existing_table )->getConstraints()
+                $this->schema->getTableSchema( $existing_table )->getConstraints()
             );
             
             if( $columns_analyzer->changes_required ){
@@ -122,7 +122,7 @@ class DBMigrator
     
     public function actualizeSchema(): void
     {
-        $this->schemas
+        $this->schema
             || throw new DBMigratorException('No schema defined to analyze. Use DBMigrator::setSchema() to define it.');
         
         $this->compareWithCurrentStructure();
@@ -133,7 +133,7 @@ class DBMigrator
     
     public function dropSchema(): bool
     {
-        $this->schemas
+        $this->schema
             || throw new DBMigratorException('No schema defined to analyze. Use DBMigrator::setSchema() to define it.');
         
         $out = true;
@@ -146,7 +146,7 @@ class DBMigrator
     
     private function checkTablesForExistence(): void
     {
-        foreach ( $this->schemas->getTableNames() as $table_name ){
+        foreach ( $this->schema->getTableNames() as $table_name ){
 			
 	        $production_table_name = $table_name;
             
@@ -175,7 +175,7 @@ class DBMigrator
             $tables_to_create,
             fn( $table_to_create ) =>
                 $this->gateway->createTable(
-                    $this->schemas->getTableSchema( $table_to_create )
+                    $this->schema->getTableSchema( $table_to_create )
                 )
         );
     }
@@ -228,5 +228,10 @@ class DBMigrator
     public function getTablesToUpdate(): array
     {
         return $this->tables_to_update;
+    }
+    
+    public function getTablesNames()
+    {
+        return $this->gateway->getTablesNames();
     }
 }
