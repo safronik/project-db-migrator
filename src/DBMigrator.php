@@ -137,7 +137,13 @@ class DBMigrator
             || throw new DBMigratorException('No schema defined to analyze. Use DBMigrator::setSchema() to define it.');
         
         $out = true;
-        foreach( $this->schemas->getTableNames() as $scheme_table_name ){
+        
+        $tables = $this->schema->getTableNames();
+        usort($tables, static function($a,$b){
+            return strlen($b)-strlen($a);
+        });
+        
+        foreach( $tables as $scheme_table_name ){
             $out = $out && $this->gateway->dropTable( $scheme_table_name );
         }
         
