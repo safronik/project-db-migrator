@@ -24,27 +24,40 @@ or just download files or clone repository (in this case you should bother about
 
 You need to do few things before usage.
 
-First, you should to implement DBMigratorGatewayInterface to create the gateway. These methods:
-
+- Firstly, you should implement `DBMigratorGatewayInterface` to create the gateway.
 ```php
-isTableExists(table): bool
-createTable(table: Table): bool
-getTablesNames(): array
-getTableColumns(table: string): array
-getTableIndexes(table: string): array
-getTableConstraints(table: string): array
-alterTable(table, [columns: array = [...]], [indexes: array = [...]], [constraints: array = [...]]): bool
-dropTable(table): bool
+namespace Safronik\DBMigrator;
+
+use Safronik\DBMigrator\Objects\Table;
+
+interface DBMigratorGatewayInterface
+{
+    public function isTableExists( $table ): bool;
+    public function createTable( Table $table ): bool;
+    public function getTablesNames(): array;
+    public function getTableColumns( string $table ): array;
+    public function getTableIndexes( string $table ): array;
+    public function getTableConstraints( string $table ): array;
+    public function alterTable( $table, array $columns = [], array $indexes = [], array $constraints = [] ): bool;
+    public function dropTable( $table ): bool;
+}
+```
+Like this:
+```php
+class DBMigratorGatewayInterfaceImplementation implements \Safronik\DBMigrator\DBMigratorGatewayInterface
+{
+    // Your implementation of the interface
+}
 ```
 
-Second, you should make schema provider or just provide object Schemas to migrator object. You can use self::getCurrentSchemas() to get current schemas.
+- Secondly, you should make schema provider or just provide object `Schemas` to migrator object. You can use `self::getCurrentSchemas()` to get current schemas.
 
 ```php
 $migrator = new DBMigrator( $migrator_gateway );
 $schemas  = $migrator->getCurrentSchemas();
 ```
 
-Anyway, here is an example of manual Schemas object creation:
+Anyway, here is an example of the manual Schemas object creation:
 
 ```php
 $schemas = new Schemas([
@@ -103,19 +116,23 @@ $schemas = new Schemas([
 And finally after all that you can proceed:
 
 ```php
-$migrator_gateway = new DBMigratorGatewayInterfaceImplementation(); 
+$migrator = new DBMigrator( 
+    new DBMigratorGatewayInterfaceImplementation() 
+);
 
-$migrator = new DBMigrator( $migrator_gateway );
 $migrator
     ->setSchemas( $schemas )
     ->compareWithCurrentStructure()
     ->actualizeSchema();
 ```
 
-Also you can drop existing schema:
+Also, you can drop existing schema:
 
 ```php
-$migrator = new DBMigrator( $migrator_gateway );
+$migrator = new DBMigrator( 
+    new DBMigratorGatewayInterfaceImplementation() 
+);
+
 $migrator
     ->setSchemas( $migrator->getCurrentSchemas() )
     ->dropSchema();
