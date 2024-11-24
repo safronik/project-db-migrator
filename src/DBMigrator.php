@@ -2,6 +2,7 @@
 
 namespace Safronik\DBMigrator;
 
+use Exception;
 use Safronik\DBMigrator\Analyzers\ColumnsAnalyzer;
 use Safronik\DBMigrator\Analyzers\ConstraintAnalyzer;
 use Safronik\DBMigrator\Analyzers\IndexAnalyzer;
@@ -49,7 +50,7 @@ class DBMigrator
      * Get schemas for all database tables
      *
      * @return Schema
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCurrentSchemas(): Schema
     {
@@ -119,7 +120,10 @@ class DBMigrator
         
         return $this;
     }
-    
+
+    /**
+     * @throws DBMigratorException
+     */
     public function actualizeSchema(): void
     {
         $this->schema
@@ -130,25 +134,29 @@ class DBMigrator
         $this->createTables( $this->not_existing_tables );
         $this->updateTables( $this->tables_to_update );
 	}
-    
+
+    /**
+     * @throws DBMigratorException
+     */
     public function dropSchema(): bool
     {
         $this->schema
-            || throw new DBMigratorException('No schema defined to analyze. Use DBMigrator::setSchema() to define it.');
-        
+            || throw new DBMigratorException( 'No schema defined to analyze. Use DBMigrator::setSchema() to define it.' );
+
         $out = true;
-        
-        $tables = $this->schema->getTableNames();
-        usort($tables, static function($a,$b){
-            return strlen($b)-strlen($a);
-        });
-        
-        foreach( $tables as $scheme_table_name ){
+
+        $this->existing_tables = $this->schema->getTableNames();
+        usort(
+            $this->existing_tables,
+            static fn( $a, $b ) => strlen( $b ) - strlen( $a )
+        );
+
+        foreach( $this->existing_tables as $scheme_table_name ){
             $out = $out && $this->gateway->dropTable( $scheme_table_name );
         }
-        
+
         return $out;
-	}
+    }
     
     private function checkTablesForExistence(): void
     {
@@ -169,15 +177,11 @@ class DBMigrator
     
     /**
      * Iteratively creates tables
-     *
-     * @param array $tables_to_create
-     *
-     * @return bool
      */
-    private function createTables( array $tables_to_create ): bool
+    private function createTables( array $tables_to_create ): void
     {
         // Filter out created tables one by one
-        return (bool) array_filter(
+        array_filter(
             $tables_to_create,
             fn( $table_to_create ) =>
                 $this->gateway->createTable(
@@ -188,15 +192,11 @@ class DBMigrator
     
     /**
      * Iteratively updates tables
-     *
-     * @param $tables_to_update
-     *
-     * @return bool
      */
-    private function updateTables( $tables_to_update ): bool
+    private function updateTables( array $tables_to_update ): void
     {
         // Filter out updated tables one by one
-        return (bool) array_filter(
+        array_filter(
             $tables_to_update,
             fn( $table_data, $table_name ) =>
                 $this->gateway->alterTable(
@@ -208,7 +208,10 @@ class DBMigrator
             ARRAY_FILTER_USE_BOTH
         );
     }
-    
+
+    /**
+     * @throws DBMigratorException
+     */
     private function getCurrentTableSchema( mixed $table_name ): Table
     {
         return new Table(
@@ -226,6 +229,11 @@ class DBMigrator
         );
     }
     
+    public function getExistingTables(): array
+    {
+        return $this->existing_tables;
+    }
+
     public function getNotExistingTables(): array
     {
         return $this->not_existing_tables;
@@ -236,7 +244,7 @@ class DBMigrator
         return $this->tables_to_update;
     }
     
-    public function getTablesNames()
+    public function getTablesNames(): array
     {
         return $this->gateway->getTablesNames();
     }

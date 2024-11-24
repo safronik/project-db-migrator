@@ -44,7 +44,8 @@ class Table{
     {
         array_walk(
             $input,
-            static fn( $value ) => $value instanceof $expected_type || throw new DBMigratorException("Schema should get $expected_type as param param")
+            static fn( $value ) => $value instanceof $expected_type
+                || throw new DBMigratorException("Schema should get $expected_type as param")
         );
     }
     

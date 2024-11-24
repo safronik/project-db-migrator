@@ -9,7 +9,7 @@ use Traversable;
 class Schema implements \IteratorAggregate{
     
     /** @var Table[] */
-    private array $schemas;
+    private array $tables;
     
     /**
      * @param Table[] $schema
@@ -19,36 +19,42 @@ class Schema implements \IteratorAggregate{
     public function __construct( array $schema = [] )
     {
         $this->checkInputArray( $schema, Table::class );
-        $this->setSchema( $schema );
+        $this->setTablesSchemas( $schema );
     }
     
     /**
-     * @param $input
+     * @param array $input
      * @param $expected_type
      *
      * @return void
      * @throws DBMigratorException
      */
-    private function checkInputArray( $input, $expected_type ): void
+    private function checkInputArray( array $input, $expected_type ): void
     {
         array_walk(
             $input,
-            static fn( $value ) => $value instanceof $expected_type || throw new DBMigratorException("Schema should get $expected_type as param param")
+            static fn( $value ) => $value instanceof $expected_type
+                || throw new DBMigratorException("Schema should receive $expected_type, " . $value::class . ' passed')
         );
     }
     
     /**
      * Set given schema
-     *
-     * @param $schemas
+     * 
+     * @param $tables_schemas
      *
      * @return void
      */
-    private function setSchema( $schemas ): void
+    private function setTablesSchemas( $tables_schemas ): void
     {
-        foreach( $schemas as $schema ){
-            $this->schemas[ $schema->getTableName() ] = $schema;
+        foreach( $tables_schemas as $schema ){
+            $this->tables[ $schema->getTableName() ] = $schema;
         }
+    }
+    
+    public function isEmpty(): bool
+    {
+        return empty( $this->tables );
     }
     
     /**
@@ -56,17 +62,14 @@ class Schema implements \IteratorAggregate{
      *
      * @return Table
      */
-    public function getTableSchema( $table_name ): Table
+    public function getTableSchema( string $table_name ): Table
     {
-        return $this->schemas[ $table_name ];
+        return $this->tables[ $table_name ];
     }
-    
-    /**
-     * @return string[]
-     */
+
     public function getTableNames(): array
     {
-        return array_keys( $this->schemas );
+        return array_keys( $this->tables );
     }
     
     /**
@@ -74,6 +77,6 @@ class Schema implements \IteratorAggregate{
      */
     public function getIterator(): Traversable
     {
-        return new \ArrayIterator( $this->schemas );
+        return new \ArrayIterator( $this->tables );
     }
 }
