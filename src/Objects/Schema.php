@@ -23,18 +23,15 @@ class Schema implements \IteratorAggregate{
     }
     
     /**
-     * @param array $input
-     * @param $expected_type
-     *
-     * @return void
      * @throws DBMigratorException
      */
-    private function checkInputArray( array $input, $expected_type ): void
+    private function checkInputArray( array $input, string $expected_type ): void
     {
         array_walk(
             $input,
-            static fn( $value ) => $value instanceof $expected_type
-                || throw new DBMigratorException("Schema should receive $expected_type, " . $value::class . ' passed')
+            static fn( $value ) =>
+                $value instanceof $expected_type
+                    || throw new DBMigratorException("Schema should receive $expected_type, " . $value::class . ' passed')
         );
     }
     
@@ -56,12 +53,7 @@ class Schema implements \IteratorAggregate{
     {
         return empty( $this->tables );
     }
-    
-    /**
-     * @param string $table_name
-     *
-     * @return Table
-     */
+
     public function getTableSchema( string $table_name ): Table
     {
         return $this->tables[ $table_name ];
@@ -71,10 +63,7 @@ class Schema implements \IteratorAggregate{
     {
         return array_keys( $this->tables );
     }
-    
-    /**
-     * @return Traversable
-     */
+
     public function getIterator(): Traversable
     {
         return new \ArrayIterator( $this->tables );

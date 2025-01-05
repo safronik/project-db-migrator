@@ -5,8 +5,7 @@ namespace Safronik\DBMigrator\Objects;
 use Safronik\DBMigrator\Exceptions\DBMigratorException;
 
 class Table{
-    
-    /** @var string */
+
     private string $table_name;
     
     /** @var Column[] */
@@ -44,7 +43,8 @@ class Table{
     {
         array_walk(
             $input,
-            static fn( $value ) => $value instanceof $expected_type
+            static fn( $value ) =>
+                $value instanceof $expected_type
                 || throw new DBMigratorException("Schema should get $expected_type as param")
         );
     }

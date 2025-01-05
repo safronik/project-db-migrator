@@ -178,10 +178,10 @@ class DBMigrator
     /**
      * Iteratively creates tables
      */
-    private function createTables( array $tables_to_create ): void
+    private function createTables( array $tables_to_create ): bool
     {
         // Filter out created tables one by one
-        array_filter(
+        return (bool) array_filter(
             $tables_to_create,
             fn( $table_to_create ) =>
                 $this->gateway->createTable(
@@ -193,10 +193,10 @@ class DBMigrator
     /**
      * Iteratively updates tables
      */
-    private function updateTables( array $tables_to_update ): void
+    private function updateTables( $tables_to_update ): bool
     {
         // Filter out updated tables one by one
-        array_filter(
+        return (bool) array_filter(
             $tables_to_update,
             fn( $table_data, $table_name ) =>
                 $this->gateway->alterTable(
